@@ -15,3 +15,11 @@ class EmoteFactory:
             r.append(EmoteFactory._emotes[id])
             
         return  r
+    
+    def set_root(root):
+        root.after(10, EmoteFactory.__annotations__, root)
+        
+    def __annotations__(root):
+        for emote in EmoteFactory._emotes.values():
+            emote.animation()
+        root.after(10, EmoteFactory.__annotations__, root)

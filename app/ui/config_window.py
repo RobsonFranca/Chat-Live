@@ -1,6 +1,7 @@
 import os
 import tkinter as tk
 from tkinter import messagebox
+from tkinter import ttk
 
 import psutil
 
@@ -12,7 +13,7 @@ from app.twitch.message import Message
 class ConfigWindow(tk.Tk):
     def __init__(self, master=None):
         super().__init__(master)
-        self.title("Chat Twitch")
+        self.title("Chat Live - Configurações")
         self.geometry("400x400")
         self.configure(bg="#333333")
         self.wm_attributes("-topmost", True)
@@ -45,14 +46,23 @@ class ConfigWindow(tk.Tk):
         self.after(5000, self.__mem__)
     
     def __construct_window__(self):
-        self.title_wiindow = tk.Label(self, text="Configurações do Chat", bg="#333333", fg="white", font=("Arial", 16))
-        self.title_wiindow.pack(pady=10)
-        
+        channel_label = tk.Label(self, text="Canal", bg="#333333", fg="white", font=("Arial", 12, "bold"))
+        channel_label.pack(padx=20, pady=10, anchor="w")
         self.entry_channel = self.__create_input__("Canal:", tk.StringVar(value=Config.get("last_channel", "")))
+        
+        message_label = tk.Label(self, text="Mensagens", bg="#333333", fg="white", font=("Arial", 12, "bold"))
+        message_label.pack(padx=20, pady=10, anchor="w")
         self.__create_multiple_choice__(
             'Tempo de exibição da mensagem:', 
             [("10s", 10), ("15s", 15), ("30s", 30), ("1m", 60)], 
             "message.display_time"
+        )
+        self.__create_select__("Fonte da mensagem:", ["Segoe UI", "Arial", "Times New Roman", "Comic Sans MS"], "message.font")
+        self.__create_select__("Tamanho da fonte:", ["8", "10", "12", "14"], "message.font_size")
+        self.__create_multiple_choice__(
+            'Salvar emotes:', 
+            [("Sim", True), ("Não", False)], 
+            "emote.save_emotes"
         )
         
         self.button_connect = tk.Button(self, text="Conectar", bg="#555555", fg="white", font=("Arial", 12), command=self.__connect__)
@@ -84,13 +94,30 @@ class ConfigWindow(tk.Tk):
         input.pack(anchor="w",side="left", fill="x")
         return input;
     
+    def __create_select__(self, title, options = [], name_variable_config=""):
+        area_select = tk.Frame(self, bg="#333333")
+        area_select.pack(fill="x", padx=20, pady=5)
+        label = tk.Label(area_select, text=title, bg="#333333", fg="white", font=("Arial", 12))
+        label.pack(anchor="w",side="left")
+        select = ttk.Combobox(area_select, font=("Arial", 12), values=options)
+        select.pack(anchor="w",side="left", fill="x")
+        
+        value = Config.get(name_variable_config, options[0])
+        select.current(options.index(value))
+        
+        def change(event):
+            Config.set(name_variable_config, select.get())
+            
+        select.bind("<<ComboboxSelected>>", change)
+        
+        return select;
+    
     def __create_multiple_choice__(self, title, options = [], name_variable_config=""):
         area_choice = tk.Frame(self, bg="#333333")
         area_choice.pack(fill="x", padx=20, pady=5)
         label = tk.Label(area_choice, text=title, bg="#333333", fg="white", font=("Arial", 12))
         label.pack(anchor="w")
         
-        # pegar valor do config
         value = Config.get(name_variable_config, options[0][1])
         
         var = tk.IntVar()
@@ -100,7 +127,7 @@ class ConfigWindow(tk.Tk):
             Config.set(name_variable_config, var.get())
         for option,v in options:
             rb = tk.Radiobutton(area_choice, text=option, variable=var, value=v, bg="#333333", fg="white", font=("Arial", 12), selectcolor="#555555",command=change_value)
-            rb.pack(anchor="w",side="left")
+            rb.pack(anchor="w",side="left",padx=5)
         return None;
         
     def __connect__(self):
@@ -136,7 +163,6 @@ class ConfigWindow(tk.Tk):
         else:
             if self._tw_connect is not None:
                 self._tw_connect.stop()
-            print("Desconectado.")
             self.entry_channel.config(state=tk.NORMAL)
             self.button_connect.config(state=tk.NORMAL, text="Conectar")
         

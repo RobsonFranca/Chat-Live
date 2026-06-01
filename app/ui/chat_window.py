@@ -2,6 +2,7 @@ import queue
 import tkinter as tk
 
 from app.cache.config import Config
+from app.cache.emote_factory import EmoteFactory
 from app.twitch.message import Message
 
 class ChatWindow(tk.Toplevel):
@@ -32,6 +33,7 @@ class ChatWindow(tk.Toplevel):
         
         self.queue_messages = queue.Queue()
         self.after(500, self.__process_queue__)
+        EmoteFactory.set_root(self)
         
     def __get_config__(self):
         self._config_geometry = Config.get("window.geometry")
@@ -116,6 +118,8 @@ class ChatWindow(tk.Toplevel):
         else:
             self.frame_msgs.pack_forget()
             self.frame_to_move.pack(expand=True, fill="both")
+            while len(self.frame_msgs.winfo_children()) > 0:
+                self.frame_msgs.winfo_children()[0].destroy()
 
     def __trim_messages__(self):
         self.frame_msgs.update_idletasks()
@@ -125,10 +129,12 @@ class ChatWindow(tk.Toplevel):
                 total += child.winfo_height()+(Message.GAP_VALUE*2)
             return total
 
-        max_height = self.container_chat.winfo_height()
+        max_height = self.container_chat.winfo_height()-50
+        total = get_total_height()
 
-        while max_height < get_total_height():
+        while max_height < total and len(self.frame_msgs.winfo_children()) > 0:
             child = self.frame_msgs.winfo_children()[0]
+            total -= child.winfo_height()+(Message.GAP_VALUE*2)
             child.destroy()
 
     def __process_queue__(self):
