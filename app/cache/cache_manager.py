@@ -10,6 +10,7 @@ def __get_path_or_none__(dir, file_name):
         dir_file.mkdir(parents=True, exist_ok=True)
     else:
        dir_file = cache_dir 
+       dir_file.mkdir(parents=True, exist_ok=True)
 
     file = Path(dir_file / f"{file_name}.cache")
     if file.exists():
@@ -23,6 +24,7 @@ def __get_path__(dir, file_name):
         dir_file.mkdir(parents=True, exist_ok=True)
     else:
        dir_file = cache_dir 
+       dir_file.mkdir(parents=True, exist_ok=True)
 
     file = Path(dir_file / f"{file_name}.cache")
    
