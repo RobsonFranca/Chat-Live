@@ -36,7 +36,7 @@ class ChatWindow(tk.Toplevel):
         EmoteFactory.set_root(self)
         
     def __get_config__(self):
-        self._config_geometry = Config.get("window.geometry")
+        self._config_geometry = Config.get("window.geometry", {"width": 300, "height": 400, "x": 100, "y": 100})
 
     def __get_frame_to_change__(self):
         frame_to_move = tk.Frame(self.container_chat, bg="#444444", cursor="fleur")
