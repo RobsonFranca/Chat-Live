@@ -1,4 +1,5 @@
 import os
+import time
 import tkinter as tk
 from tkinter import messagebox
 from tkinter import ttk
@@ -9,6 +10,7 @@ from app.cache.config import Config
 from app.twitch.connection import ChannelNotFoundError, TwitchConnection
 from app.ui.chat_window import ChatWindow
 from app.twitch.message import Message
+from app.ui.fullscreen import Fullscreen
 
 class ConfigWindow(tk.Tk):
     def __init__(self, master=None):
@@ -23,6 +25,7 @@ class ConfigWindow(tk.Tk):
         
         self.connected = False
         self.chat.change_fixed(self.connected)
+        self.last_command_time = time.time()
         
         self.__mem__()    
     
@@ -83,6 +86,7 @@ class ConfigWindow(tk.Tk):
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
         
         self.chat = ChatWindow(self)
+        self.fullscreen = Fullscreen(self)
         self._tw_connect = None
         
     def __create_input__(self, title, textvariable):
@@ -173,6 +177,11 @@ class ConfigWindow(tk.Tk):
      
     def __get_message__(self, msg):
         m = Message(msg)
+        if m.is_command():
+            if time.time() - self.last_command_time > 5 * 60:
+                self.last_command_time = time.time()
+                if m.command == "!olha_o_sonic":
+                    self.fullscreen.create_sonic()
         self.chat.add_message(m)
         
     def __change_status__(self, new_status):

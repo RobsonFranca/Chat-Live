@@ -38,6 +38,7 @@ class Message():
         self.color = Color.get_by_hex(dict_aux["color"]).change_brightness_hsv(2).to_hex() if "color" in dict_aux and dict_aux["color"] else UserColorFactory.get_color(self.user_id).change_brightness_hsv(2).to_hex()
         self.emotes = EmoteFactory.get_emotes(dict_aux["emotes"] if "emotes" in dict_aux else "")
         self.user_type = self.__get_user_type__(dict_aux["user-type"])
+        self.command = self.__get_command__()
         self.message = self.__get_message__()
     
     def __get_user_type__(self, user_type):
@@ -46,6 +47,12 @@ class Message():
         except:
             return ""
         
+    def __get_command__(self):
+        part = self.user_type.split(" ")[0]
+        if part in ["!olha_o_sonic"]:
+            return part
+        return None
+    
     def __get_message__(self):
         r = [];
         pos_emote = {}
@@ -63,6 +70,9 @@ class Message():
             offset = pos[0] + (pos[1]+1 - pos[0])
         if(len(message_aux) > 0):
             r.append(("text",message_aux))
+        print(r)
+        print(self.user_type)
+        print(pos_emote)
         return r
     
     def __set_nickname__(self, current_line):
@@ -76,6 +86,9 @@ class Message():
         two_dots.update_idletasks()
         current_width += two_dots.winfo_reqwidth()
         return current_width
+    
+    def is_command(self):
+        return self.command is not None
     
     def create_tk(self, root):
         container_to_style = tk.Frame(root, bg=Message.CHAT_COLOR)
@@ -91,12 +104,13 @@ class Message():
 
         current_width += self.__set_nickname__(current_line)
 
+        font = (Config.get("message.font", "Segoe UI"), Config.get("message.font_size", "8"))
         for type_, value in self.message:
             if type_ == "text":
                 words = value.split(" ")
 
                 for w in words:
-                    test = tk.Label(current_line, text=w+" ",font=(Config.get("message.font", "Segoe UI"), Config.get("message.font_size", "8")),bg=Message.CHAT_COLOR)
+                    test = tk.Label(current_line, text=w+" ",font=font,bg=Message.CHAT_COLOR)
                     test.update_idletasks()
 
                     if current_width + test.winfo_reqwidth() > max_width:
@@ -104,7 +118,7 @@ class Message():
                         current_line.pack(anchor="w", fill="x")
                         current_width = 0
 
-                    label = tk.Label(current_line,text=w+" ",font=(Config.get("message.font", "Segoe UI"), Config.get("message.font_size", "8")),fg="white",bg=Message.CHAT_COLOR,anchor="w",bd=0,highlightthickness=0,relief="flat")
+                    label = tk.Label(current_line,text=w+" ",font=font,fg="white",bg=Message.CHAT_COLOR,anchor="w",bd=0,highlightthickness=0,relief="flat")
                     label.pack(side="left")
                     label.update_idletasks()
                     current_width += label.winfo_reqwidth()

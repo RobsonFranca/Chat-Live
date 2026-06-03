@@ -12,23 +12,16 @@ from app.cache.config import Config
 def __get_url_emote__(id):
     return f"https://static-cdn.jtvnw.net/emoticons/v2/{id}/default/dark/1.0"
 
-def __get_type_emote__(id):
-    if id.startswith("emotesv2_"):
-        return "emotesv2"
-    else:
-        return "emotesv1"
-
-class Emote():
+class EmoteImage():
     EMOTE_SIZE = (24, 24)
     
-    def __init__(self, id: str, positons: str):
+    def __init__(self, id: str):
         self.__dir_emotes__ = "emotes"
-        self.__get_info__(id, positons)
+        self.__get_info__(id)
         self.imagem_tkinter_label = None
         
-    def __get_info__(self, id: str, positons: str):
+    def __get_info__(self, id: str):
         self.id = id
-        self.position_in_text = [list(map(int, s.split("-"))) for s in positons.split(",")]
         self.frames = []
         self.frames_index = 0
         self.labels = []
@@ -97,3 +90,19 @@ class Emote():
     def add_label(self, label):
         if len(self.frames) > 1:
             self.labels.append(label)
+
+class Emote():
+    EMOTE_SIZE = (24, 24)
+    
+    def __init__(self, EmoteImage: EmoteImage, positons: str):
+        self.image = EmoteImage
+        self.__get_info__(positons)
+        
+    def __get_info__(self, positons: str):
+        self.position_in_text = [list(map(int, s.split("-"))) for s in positons.split(",")]
+      
+    def get_current_frame(self):
+        return self.image.get_current_frame()
+    
+    def add_label(self, label):
+        self.image.add_label(label)

@@ -1,4 +1,4 @@
-from app.twitch.emote import Emote
+from app.twitch.emote import Emote, EmoteImage
 
 class EmoteFactory:
     _emotes = {}
@@ -10,9 +10,9 @@ class EmoteFactory:
         for text_emote in text_emotes.split("/"):
             [id, positons] = text_emote.split(":",1)
             if id not in EmoteFactory._emotes:
-                EmoteFactory._emotes[id] = Emote(id, positons)
+                EmoteFactory._emotes[id] = EmoteImage(id);
             
-            r.append(EmoteFactory._emotes[id])
+            r.append(Emote(EmoteFactory._emotes[id], positons))
             
         return  r
     
