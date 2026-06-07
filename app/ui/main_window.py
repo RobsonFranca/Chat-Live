@@ -232,7 +232,6 @@ class MainWindow(tk.Tk):
     def __get_message__(self, msg):
         m = Message(msg, self.commands.keys())
         if m.is_command():
-            print(m.command, time.time() - self.last_command_time, Config.get("command.cooldown", 1) * 60)
             if time.time() - self.last_command_time > Config.get("command.cooldown", 1) * 60:
                 if m.command in self.commands:
                     if self.commands[m.command]():
