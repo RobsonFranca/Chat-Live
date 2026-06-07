@@ -1,6 +1,4 @@
-import time
 import tkinter as tk
-import customtkinter as ctk
 
 from app.cache.config import Config
 from app.cache.emote_factory import EmoteFactory
@@ -70,9 +68,6 @@ class Message():
             offset = pos[0] + (pos[1]+1 - pos[0])
         if(len(message_aux) > 0):
             r.append(("text",message_aux))
-        print(r)
-        print(self.user_type)
-        print(pos_emote)
         return r
     
     def __set_nickname__(self, current_line):

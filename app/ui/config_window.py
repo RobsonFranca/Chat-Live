@@ -21,11 +21,24 @@ class ConfigWindow(tk.Tk):
         self.wm_attributes("-topmost", True)
         self.resizable(width=False, height=False)
         
+        self.chat = ChatWindow(self)
+        self.fullscreen = Fullscreen(self)
+        self._tw_connect = None
+        
+        self.commands = {
+            "!olha_o_sonic": self.fullscreen.create_sonic,
+            "!vibrar":       self.fullscreen.shake_screen,
+            "!aplauso":      self.fullscreen.create_applause,
+        }
+        
+        self.notebook = ttk.Notebook(self)
+        self.notebook.pack(fill="both", expand=True, padx=0, pady=0)
+        
         self.__construct_window__()
         
         self.connected = False
         self.chat.change_fixed(self.connected)
-        self.last_command_time = time.time()
+        self.last_command_time = 0
         
         self.__mem__()    
     
@@ -48,31 +61,76 @@ class ConfigWindow(tk.Tk):
 
         self.after(5000, self.__mem__)
     
-    def __construct_window__(self):
-        channel_label = tk.Label(self, text="Canal", bg="#333333", fg="white", font=("Arial", 12, "bold"))
-        channel_label.pack(padx=20, pady=10, anchor="w")
-        self.entry_channel = self.__create_input__("Canal:", tk.StringVar(value=Config.get("last_channel", "")))
+    def __frame_init__(self):
+        frame = tk.Frame(self.notebook, bg="#333333")
+        channel_label = tk.Label(frame, text="Canal", bg="#333333", fg="white", font=("Arial", 12, "bold"))
+        channel_label.pack(padx=20, pady=6, anchor="w")
+        self.entry_channel = self.__create_input__(frame, "Canal:", tk.StringVar(value=Config.get("last_channel", "")))
         
-        message_label = tk.Label(self, text="Mensagens", bg="#333333", fg="white", font=("Arial", 12, "bold"))
-        message_label.pack(padx=20, pady=10, anchor="w")
+        self.button_connect = tk.Button(frame, text="Conectar", bg="#555555", fg="white", font=("Arial", 12), command=self.__connect__)
+        self.button_connect.pack(pady=10)
+        
+        self.notebook.add(frame, text="Main")
+        
+    def __frame_config__(self):
+        frame = tk.Frame(self.notebook, bg="#333333")
+        message_label = tk.Label(frame, text="Mensagens", bg="#333333", fg="white", font=("Arial", 12, "bold"))
+        message_label.pack(padx=20, pady=6, anchor="w")
         self.__create_multiple_choice__(
+            frame,
             'Tempo de exibição da mensagem:', 
             [("10s", 10), ("15s", 15), ("30s", 30), ("1m", 60)], 
             "message.display_time"
         )
-        self.__create_select__("Fonte da mensagem:", ["Segoe UI", "Arial", "Times New Roman", "Comic Sans MS"], "message.font")
-        self.__create_select__("Tamanho da fonte:", ["8", "10", "12", "14"], "message.font_size")
+        self.__create_select__(
+            frame,
+            "Fonte da mensagem:",
+            ["Segoe UI", "Arial", "Times New Roman", "Comic Sans MS"],
+            "message.font"
+        )
+        self.__create_select__(
+            frame,
+            "Tamanho da fonte:",
+            ["8", "10", "12", "14"],
+            "message.font_size"
+        )
         self.__create_multiple_choice__(
+            frame,
             'Salvar emotes:', 
             [("Sim", True), ("Não", False)], 
             "emote.save_emotes"
         )
         
-        self.button_connect = tk.Button(self, text="Conectar", bg="#555555", fg="white", font=("Arial", 12), command=self.__connect__)
-        self.button_connect.pack(pady=10)
+        self.notebook.add(frame, text="Configurações")
         
-        # self.button_change_edit = tk.Button(self, text="Editar", bg="#555555", fg="white", font=("Arial", 12), command=self.__change_edit__)
-        # self.button_change_edit.pack(pady=10)
+    def __frame_commands__(self):
+        frame = tk.Frame(self.notebook, bg="#333333")
+        message_label = tk.Label(frame, text="Comandos", bg="#333333", fg="white", font=("Arial", 12, "bold"))
+        message_label.pack(padx=20, pady=6, anchor="w")
+        
+        self.__create_multiple_choice__(
+            frame,
+            'Modifica o tempo de recarga:', 
+            [("1m", 1), ("3m", 3), ("5m", 5), ("10m", 10), ("15m", 15)], 
+            "command.cooldown"
+        )
+        
+        grid = tk.Frame(frame, bg="#333333")
+        grid.pack(anchor="n", expand=True, fill="x", padx=10)
+        row = 0
+        for command, funct in self.commands.items():
+            label = tk.Label(grid, text=command, bg="#333333", fg="white", font=("Arial", 12, "bold"))
+            btn = tk.Button(grid, text="Play", command=funct)
+            label.grid(row=row, column=0, sticky="w", padx=10)
+            btn.grid(row=row, column=1,  sticky="e")
+            row+=1
+            
+        self.notebook.add(frame, text="Comandos")
+        
+    def __construct_window__(self):
+        self.__frame_init__()
+        self.__frame_config__()
+        self.__frame_commands__()
         
         self.area_info = tk.Frame(self, bg="#333333")
         self.area_info.pack(fill="x",anchor="s", side="bottom")
@@ -85,12 +143,8 @@ class ConfigWindow(tk.Tk):
         
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
         
-        self.chat = ChatWindow(self)
-        self.fullscreen = Fullscreen(self)
-        self._tw_connect = None
-        
-    def __create_input__(self, title, textvariable):
-        area_input = tk.Frame(self, bg="#333333")
+    def __create_input__(self, master, title, textvariable):
+        area_input = tk.Frame(master, bg="#333333")
         area_input.pack(fill="x", padx=20, pady=5)
         label = tk.Label(area_input, text=title, bg="#333333", fg="white", font=("Arial", 12))
         label.pack(anchor="w",side="left")
@@ -98,8 +152,8 @@ class ConfigWindow(tk.Tk):
         input.pack(anchor="w",side="left", fill="x")
         return input;
     
-    def __create_select__(self, title, options = [], name_variable_config=""):
-        area_select = tk.Frame(self, bg="#333333")
+    def __create_select__(self, master, title, options = [], name_variable_config=""):
+        area_select = tk.Frame(master, bg="#333333")
         area_select.pack(fill="x", padx=20, pady=5)
         label = tk.Label(area_select, text=title, bg="#333333", fg="white", font=("Arial", 12))
         label.pack(anchor="w",side="left")
@@ -116,8 +170,8 @@ class ConfigWindow(tk.Tk):
         
         return select;
     
-    def __create_multiple_choice__(self, title, options = [], name_variable_config=""):
-        area_choice = tk.Frame(self, bg="#333333")
+    def __create_multiple_choice__(self, master, title, options = [], name_variable_config=""):
+        area_choice = tk.Frame(master, bg="#333333")
         area_choice.pack(fill="x", padx=20, pady=5)
         label = tk.Label(area_choice, text=title, bg="#333333", fg="white", font=("Arial", 12))
         label.pack(anchor="w")
@@ -178,10 +232,10 @@ class ConfigWindow(tk.Tk):
     def __get_message__(self, msg):
         m = Message(msg)
         if m.is_command():
-            if time.time() - self.last_command_time > 5 * 60:
-                self.last_command_time = time.time()
-                if m.command == "!olha_o_sonic":
-                    self.fullscreen.create_sonic()
+            if time.time() - self.last_command_time > Config.get("command.cooldown", 1) * 60:
+                if m.command in self.commands:
+                    if self.commands[m.command]():
+                        self.last_command_time = time.time()
         self.chat.add_message(m)
         
     def __change_status__(self, new_status):

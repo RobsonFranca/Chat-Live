@@ -14,6 +14,7 @@ class ChatWindow(tk.Toplevel):
         self.geometry(f"{self._config_geometry['width']}x{self._config_geometry['height']}+{self._config_geometry['x']}+{self._config_geometry['y']}")
         self.configure(bg="#ff00ff")
         self.wm_attributes("-transparentcolor", "#ff00ff")
+        self.wm_attributes('-toolwindow', True)
         self.wm_attributes("-topmost", True)
         self.overrideredirect(True)
         
@@ -138,6 +139,7 @@ class ChatWindow(tk.Toplevel):
             child.destroy()
 
     def __process_queue__(self):
+        self.wm_attributes("-topmost", True)
         while not self.queue_messages.empty():
             mensagem = self.queue_messages.get()
             mensagem.create_tk(self.frame_msgs)
