@@ -12,7 +12,7 @@ from app.ui.chat_window import ChatWindow
 from app.twitch.message import Message
 from app.ui.fullscreen import Fullscreen
 
-class ConfigWindow(tk.Tk):
+class MainWindow(tk.Tk):
     def __init__(self, master=None):
         super().__init__(master)
         self.title("Chat Live - Configurações")
@@ -230,8 +230,9 @@ class ConfigWindow(tk.Tk):
         self.chat.change_fixed(self.connected)
      
     def __get_message__(self, msg):
-        m = Message(msg)
+        m = Message(msg, self.commands.keys())
         if m.is_command():
+            print(m.command, time.time() - self.last_command_time, Config.get("command.cooldown", 1) * 60)
             if time.time() - self.last_command_time > Config.get("command.cooldown", 1) * 60:
                 if m.command in self.commands:
                     if self.commands[m.command]():
@@ -247,5 +248,5 @@ class ConfigWindow(tk.Tk):
         self.destroy()
             
 if __name__ == "__main__":
-    app = ConfigWindow()
+    app = MainWindow()
     app.mainloop()

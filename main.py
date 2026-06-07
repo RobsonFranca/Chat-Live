@@ -1,6 +1,6 @@
-from app.ui.config_window import ConfigWindow
+from app.ui.main_window import MainWindow
 
-app = ConfigWindow()
+app = MainWindow()
 app.mainloop()
 
 # testando a parte de emotes

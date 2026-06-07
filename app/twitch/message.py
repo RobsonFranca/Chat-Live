@@ -10,7 +10,8 @@ class Message():
     CHAT_COLOR = "#18181b"
     GAP_VALUE = 1
     
-    def __init__(self, text_message):
+    def __init__(self, text_message, commands):
+        self.commands = commands
         self.__get_info__(text_message)
     
     def __extract_dict__(self, text_message):
@@ -47,7 +48,7 @@ class Message():
         
     def __get_command__(self):
         part = self.user_type.split(" ")[0]
-        if part in ["!olha_o_sonic"]:
+        if part in self.commands:
             return part
         return None
     
