@@ -28,7 +28,7 @@ class MainWindow(tk.Tk):
         self.commands = {
             "!olha_o_sonic": self.fullscreen.create_sonic,
             "!vibrar":       self.fullscreen.shake_screen,
-            "!aplauso":      self.fullscreen.create_applause,
+            "!aplausos":      self.fullscreen.create_applause,
         }
         
         self.notebook = ttk.Notebook(self)
